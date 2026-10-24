@@ -32,12 +32,17 @@ from PIL import Image, UnidentifiedImageError
 
 from agent.crop_advisory_agent import CropAdvisoryAgent
 
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "static", "uploads")
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_DIR = os.path.join(APP_DIR, "static", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 UPLOAD_MAX_AGE = 24 * 3600          # uploaded photos are deleted after 24 h
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=os.path.join(APP_DIR, "templates"),
+    static_folder=os.path.join(APP_DIR, "static"),
+)
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024        # 8 MB upload cap
 
 agent = CropAdvisoryAgent()

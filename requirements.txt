@@ -17,3 +17,4 @@ tensorflow>=2.15
 # Web application
 flask
 werkzeug
+gunicorn
