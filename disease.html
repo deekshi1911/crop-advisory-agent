@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_macros.html" import uploader, disease_card %}
+{% block title %}Disease Detection{% endblock %}
+{% block content %}
+<h1>🍃 Leaf Disease Detection</h1>
+<p class="lede">Upload a Sugarcane, Cotton or Apple leaf photo. Classes: 10 across the three crops.
+Test accuracy {{ metrics.disease }}% for the current baseline model.</p>
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    {{ uploader(preview_url, required=True) }}
+    <button class="submit" type="submit">Detect Disease</button>
+  </form>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  {% if result %}{{ disease_card(result) }}{% endif %}
+</div>
+{% endblock %}

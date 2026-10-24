@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crop Advisory Agent — 23AID205 Project</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --ink:#17241c;
+    --paper:#eef0e3;
+    --paper2:#e4e8d6;
+    --deep:#1e3626;
+    --deep2:#152a1c;
+    --accent:#c08a2e;
+    --soil:#7a4b32;
+    --line:#c9cdb8;
+    --good:#3f6b46;
+    --bad:#9a4433;
+    --display: 'Fraunces', serif;
+    --body: 'Work Sans', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--body);
+    color:var(--ink);
+    background:var(--paper);
+    line-height:1.6;
+  }
+  a{color:var(--soil);}
+  img{max-width:100%; display:block; border-radius:4px; border:1px solid var(--line);}
+
+  /* ---------- layout shell ---------- */
+  .shell{display:grid; grid-template-columns:240px 1fr; max-width:1280px; margin:0 auto;}
+  nav.toc{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    padding:32px 20px; border-right:1px solid var(--line);
+  }
+  nav.toc .brand{font-family:var(--display); font-weight:700; font-size:1.15rem; color:var(--deep); margin-bottom:28px; line-height:1.25;}
+  nav.toc .brand span{display:block; font-family:var(--mono); font-size:.65rem; letter-spacing:.12em; color:var(--soil); text-transform:uppercase; margin-top:6px;}
+  nav.toc ol{list-style:none; counter-reset:sec;}
+  nav.toc li{counter-increment:sec; margin-bottom:2px;}
+  nav.toc a{
+    display:flex; gap:8px; text-decoration:none; color:var(--ink); font-size:.82rem;
+    padding:6px 8px; border-radius:4px;
+  }
+  nav.toc a:hover{background:var(--paper2);}
+  nav.toc a::before{
+    content:counter(sec,decimal-leading-zero); font-family:var(--mono); color:var(--soil); font-size:.72rem;
+  }
+  main{padding:0;}
+
+  /* ---------- hero ---------- */
+  .hero{
+    background:linear-gradient(180deg, var(--deep) 0%, var(--deep2) 100%);
+    color:var(--paper); padding:64px 56px 48px;
+  }
+  .hero .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; color:var(--accent); margin-bottom:16px;}
+  .hero h1{font-family:var(--display); font-weight:700; font-size:clamp(2.1rem,4vw,3.2rem); line-height:1.08; max-width:14ch;}
+  .hero p.lede{max-width:56ch; margin-top:18px; font-size:1.05rem; color:#dfe6d5;}
+  .field-strip{
+    display:grid; grid-template-columns:repeat(7,1fr); gap:1px; margin-top:36px;
+    background:rgba(255,255,255,.15); border-radius:8px; overflow:hidden;
+  }
+  .field-strip div{
+    background:rgba(255,255,255,.05); padding:14px 12px; text-align:center;
+  }
+  .field-strip .k{font-family:var(--mono); font-size:.65rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent);}
+  .field-strip .v{font-family:var(--display); font-size:1.3rem; font-weight:600; margin-top:4px;}
+
+  /* ---------- sections ---------- */
+  section{padding:52px 56px; border-bottom:1px solid var(--line);}
+  section:nth-of-type(even){background:var(--paper2);}
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:22px;}
+  .sec-head .num{font-family:var(--mono); color:var(--accent); font-size:.85rem;}
+  h2{font-family:var(--display); font-weight:600; font-size:1.7rem; color:var(--deep);}
+  h3{font-family:var(--display); font-weight:600; font-size:1.2rem; color:var(--deep); margin:24px 0 10px;}
+  p{max-width:76ch; margin-bottom:12px;}
+  ul,ol{margin:10px 0 14px 20px; max-width:76ch;}
+  li{margin-bottom:6px;}
+  code, .mono{font-family:var(--mono); font-size:.85em; background:rgba(0,0,0,.05); padding:1px 5px; border-radius:3px;}
+
+  .seed-row{
+    height:14px; margin:44px 0; background-image:radial-gradient(circle, var(--soil) 1.5px, transparent 1.5px);
+    background-size:14px 14px; background-position:center; opacity:.35;
+  }
+
+  /* ---------- cards / grids ---------- */
+  .grid{display:grid; gap:20px;}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-2{grid-template-columns:repeat(2,1fr);}
+  @media(max-width:900px){.grid-3,.grid-2{grid-template-columns:1fr;} .shell{grid-template-columns:1fr;} nav.toc{position:relative; height:auto;} section{padding:36px 22px;} .hero{padding:40px 22px;}}
+
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:10px; padding:20px;
+  }
+  .card h4{font-family:var(--display); font-size:1.05rem; color:var(--deep); margin-bottom:6px;}
+  .metric{display:flex; justify-content:space-between; font-family:var(--mono); font-size:.85rem; padding:4px 0; border-bottom:1px dashed var(--line);}
+  .metric:last-child{border-bottom:none;}
+  .metric b{color:var(--deep);}
+  .badge{display:inline-block; font-family:var(--mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; padding:2px 8px; border-radius:20px; margin-left:8px;}
+  .badge.win{background:rgba(63,107,70,.15); color:var(--good);}
+  .badge.low{background:rgba(154,68,51,.15); color:var(--bad);}
+
+  figure{margin:16px 0;}
+  figcaption{font-family:var(--mono); font-size:.72rem; color:var(--soil); margin-top:6px;}
+
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:14px 0; max-width:76ch;}
+  th,td{text-align:left; padding:7px 10px; border-bottom:1px solid var(--line);}
+  th{font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--soil);}
+
+  .callout{
+    border-left:3px solid var(--accent); background:rgba(192,138,46,.08);
+    padding:14px 18px; border-radius:0 8px 8px 0; max-width:76ch; margin:16px 0;
+  }
+  .callout.warn{border-color:var(--bad); background:rgba(154,68,51,.07);}
+
+  .pipeline{list-style:none; margin:16px 0; max-width:76ch;}
+  .pipeline li{
+    position:relative; padding:10px 0 10px 30px; border-left:2px solid var(--line);
+  }
+  .pipeline li::before{
+    content:attr(data-n); position:absolute; left:-11px; top:8px; width:20px; height:20px;
+    background:var(--deep); color:var(--paper); font-family:var(--mono); font-size:.65rem;
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+  }
+  .pipeline li:last-child{border-left-color:transparent;}
+
+  footer{padding:32px 56px; font-family:var(--mono); font-size:.75rem; color:var(--soil); text-align:center;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="toc">
+    <div class="brand">Crop Advisory Agent<span>23AID205 · AI/DS/ML Project</span></div>
+    <ol>
+      <li><a href="#intro">Introduction</a></li>
+      <li><a href="#problem">Problem Statement</a></li>
+      <li><a href="#objectives">Objectives &amp; Scope</a></li>
+      <li><a href="#methodology">Methodology</a></li>
+      <li><a href="#eda">Exploratory Analysis</a></li>
+      <li><a href="#models">Model Training</a></li>
+      <li><a href="#results">Results &amp; Discussion</a></li>
+      <li><a href="#software">Software Demo</a></li>
+      <li><a href="#conclusion">Conclusion</a></li>
+      <li><a href="#references">References</a></li>
+      <li><a href="#contributors">Contributors</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <div class="eyebrow">Field Notes / 01</div>
+      <h1>Advising the plot before the season turns.</h1>
+      <p class="lede">A three-model pipeline that reads a soil &amp; climate profile and a leaf photograph, then
+      recommends what to plant, what to feed it, and how to treat what's already wrong with it.</p>
+      <div class="field-strip">
+        <div><div class="k">N</div><div class="v">90</div></div>
+        <div><div class="k">P</div><div class="v">42</div></div>
+        <div><div class="k">K</div><div class="v">43</div></div>
+        <div><div class="k">Temp °C</div><div class="v">25</div></div>
+        <div><div class="k">Humidity %</div><div class="v">80</div></div>
+        <div><div class="k">pH</div><div class="v">6.5</div></div>
+        <div><div class="k">Rainfall mm</div><div class="v">200</div></div>
+      </div>
+    </div>
+
+    <!-- 1. INTRODUCTION -->
+    <section id="intro">
+      <div class="sec-head"><span class="num">01</span><h2>Introduction &amp; Motivation</h2></div>
+      <p>Smallholder and mid-size farmers routinely make three high-stakes decisions with incomplete
+      information: which crop to sow given the current soil and weather, which fertilizer to apply given
+      the crop and soil nutrients, and how to react to disease symptoms appearing on a leaf. Extension
+      officers who could answer these questions are scarce relative to the number of farms, and the
+      underlying agronomic relationships (nutrient interactions, climate suitability, disease
+      symptomatology) are exactly the kind of structured, learnable pattern that supervised machine
+      learning is good at.</p>
+      <p>This project builds a single <strong>Crop Advisory Agent</strong> that wraps three independently
+      trained models — a crop recommender, a fertilizer recommender, and a leaf-image disease
+      classifier — behind one interface, so a user supplies soil readings (and, optionally, a leaf photo)
+      and receives a consolidated advisory report.</p>
+    </section>
+
+    <!-- 2. PROBLEM STATEMENT -->
+    <section id="problem">
+      <div class="sec-head"><span class="num">02</span><h2>Problem Statement &amp; Real-World Relevance</h2></div>
+      <p><strong>Problem.</strong> Given tabular soil/climate readings and/or a photograph of a crop leaf,
+      predict (a) the most suitable crop, (b) the most suitable fertilizer, and (c) the disease present on
+      the leaf (if any), along with a treatment recommendation.</p>
+      <p><strong>Relevance.</strong> Incorrect crop choice wastes an entire growing season; incorrect or
+      unnecessary fertilizer application wastes money and degrades soil over time; late disease
+      identification can mean the difference between a treatable outbreak and a lost harvest. Each of the
+      three sub-problems is individually well studied in agricultural ML literature — this project's
+      contribution is combining them into one advisory pipeline with a shared interface and a
+      disease → treatment knowledge lookup.</p>
+    </section>
+
+    <!-- 3. OBJECTIVES -->
+    <section id="objectives">
+      <div class="sec-head"><span class="num">03</span><h2>Objectives &amp; Scope</h2></div>
+      <ul>
+        <li>Preprocess and clean three tabular/image dataset families into model-ready form.</li>
+        <li>Perform exploratory data analysis to understand class balance, feature correlation, and image
+        characteristics before modelling.</li>
+        <li>Train and compare <strong>Decision Tree</strong> vs <strong>Random Forest</strong> classifiers for
+        crop and fertilizer recommendation (tabular, structured data).</li>
+        <li>Train a <strong>Convolutional Neural Network</strong> for leaf-disease image classification
+        (10 classes across Sugarcane, Cotton and Apple).</li>
+        <li>Evaluate every model with accuracy, precision/recall/F1 (macro), confusion matrices, and
+        cross-validation.</li>
+        <li>Combine all three trained models into a single <code>CropAdvisoryAgent</code> class and expose
+        it through a small Flask web app.</li>
+      </ul>
+      <p><strong>Scope boundary.</strong> The project targets the specific 24 crops, 21 fertilizers and 10
+      disease classes present in the supplied datasets — it is a proof-of-concept advisory pipeline, not a
+      production agronomy system, and predictions should be read as decision support rather than as a
+      substitute for expert advice.</p>
+    </section>
+
+    <!-- 4. METHODOLOGY -->
+    <section id="methodology">
+      <div class="sec-head"><span class="num">04</span><h2>Methodology</h2></div>
+
+      <h3>4.1 Dataset description &amp; source</h3>
+      <table>
+        <tr><th>Dataset</th><th>Size</th><th>Classes</th><th>Used for</th></tr>
+        <tr><td>Crop Recommendation</td><td>2,790 rows</td><td>24 crops</td><td>Crop recommendation</td></tr>
+        <tr><td>Fertilizer Recommendation</td><td>756 rows</td><td>21 fertilizers</td><td>Fertilizer recommendation</td></tr>
+        <tr><td>Sugarcane Leaf Disease</td><td>2,521 images</td><td>5 (incl. Healthy)</td><td>Disease detection</td></tr>
+        <tr><td>Cotton Leaf Disease</td><td>1,709 images</td><td>4 (incl. healthy)</td><td>Disease detection</td></tr>
+        <tr><td>PlantVillage (Apple subset)</td><td>367 images</td><td>1 (Apple scab)</td><td>Disease detection</td></tr>
+        <tr><td>Disease → Recommendation lookup</td><td>86 rows</td><td>—</td><td>Treatment advisory text</td></tr>
+      </table>
+      <p>All three image sources were merged into one <code>data/plant_images/</code> tree with
+      <code>&lt;Crop&gt;_&lt;Class&gt;</code> folder names (e.g. <code>Cotton_bacterial_blight</code>), giving
+      10 combined classes and 4,597 images total.</p>
+
+      <h3>4.2 Data representation &amp; preprocessing</h3>
+      <ol class="pipeline">
+        <li data-n="1"><strong>Tabular (crop / fertilizer):</strong> null/duplicate removal, IQR outlier
+        reporting, label-encoding of categorical columns (Soil Type, Crop Type, target labels),
+        <code>StandardScaler</code> feature scaling, stratified 80/20 train-test split.</li>
+        <li data-n="2"><strong>Images:</strong> manifest build (filepath, crop, class label) via directory
+        walk, stratified 70/15/15 train/val/test split, resize + normalise to [0,1]. The CPU baseline
+        additionally extracts <strong>HOG (Histogram of Oriented Gradients)</strong> descriptors per image.</li>
+      </ol>
+
+      <h3>4.3 Exploratory data analysis</h3>
+      <p>Class-balance bar charts, correlation heatmaps, per-feature distribution histograms, boxplot
+      outlier checks (tabular); class distribution, sample grids, and image size/brightness sampling
+      (images). Full results in <a href="#eda">§5</a>.</p>
+
+      <h3>4.4 Algorithm selection</h3>
+      <p><strong>Crop &amp; fertilizer recommendation</strong> — Decision Tree and Random Forest were chosen
+      because the inputs are low-dimensional, mixed continuous/categorical tabular features with
+      non-linear thresholds (e.g. "rice needs rainfall &gt; X mm"), which tree-based models capture
+      naturally and interpretably, and Random Forest's bagging typically reduces the variance/overfitting
+      a single Decision Tree is prone to on small tabular datasets.</p>
+      <p><strong>Disease detection</strong> — a Convolutional Neural Network is the standard architecture
+      for image classification because its convolutional filters learn local, translation-invariant
+      texture/shape patterns (lesion shape, discoloration, leaf-vein disruption) directly from pixels,
+      unlike tree models which need hand-engineered features.</p>
+
+      <h3>4.5 Model training &amp; validation</h3>
+      <ul>
+        <li>Crop / fertilizer: 5-fold cross-validation on the training split + held-out 20% test set.</li>
+        <li>Disease detection: train/val/test = 70/15/15; validation used for early stopping (CNN) /
+        model selection (baseline).</li>
+      </ul>
+
+      <h3>4.6 Evaluation metrics</h3>
+      <p>Accuracy, macro-averaged Precision / Recall / F1-score, per-class classification report, and
+      confusion matrices for every model. Macro-averaging was used (rather than weighted) so that
+      minority classes are not masked by majority-class performance — relevant here since the fertilizer
+      dataset has 21 classes with few samples each.</p>
+
+      <h3>4.7 Comparison of alternative approaches</h3>
+      <p>Decision Tree vs Random Forest is compared directly for both tabular tasks (§6). For the image
+      task, an MLP-on-HOG-features baseline is compared against a Random-Forest-on-HOG-features baseline
+      as a CPU-only stand-in, alongside a full CNN specification intended for GPU training (§6.3).</p>
+
+      <h3>4.8 Software implementation</h3>
+      <p>All models are wrapped by <code>agent/crop_advisory_agent.py</code>'s <code>CropAdvisoryAgent</code>
+      class, and demonstrated through a Flask web form + JSON API in <code>app/app.py</code> (§8).</p>
+    </section>
+
+    <div class="seed-row"></div>
+
+    <!-- 5. EDA -->
+    <section id="eda">
+      <div class="sec-head"><span class="num">05</span><h2>Exploratory Data Analysis &amp; Visualization</h2></div>
+
+      <h3>5.1 Crop recommendation dataset</h3>
+      <p>All 24 crop classes are perfectly balanced (62 rows each). Rainfall has the widest spread and the
+      most IQR outliers (296 of 2,790 rows), reflecting genuinely different rainfall needs across crops
+      rather than data error.</p>
+      <div class="grid grid-2">
+        <figure><img src="results/graphs/crop_class_distribution.png" alt="Crop class distribution">
+        <figcaption>Fig 5.1 — class distribution, 24 crops × 62 rows each</figcaption></figure>
+        <figure><img src="results/graphs/crop_correlation_heatmap.png" alt="Crop feature correlation heatmap">
+        <figcaption>Fig 5.2 — feature correlation (P–K correlate at 0.74)</figcaption></figure>
+        <figure><img src="results/graphs/crop_feature_distributions.png" alt="Crop feature distributions">
+        <figcaption>Fig 5.3 — per-feature distributions</figcaption></figure>
+        <figure><img src="results/graphs/crop_boxplots.png" alt="Crop feature boxplots">
+        <figcaption>Fig 5.4 — boxplots used for IQR outlier detection</figcaption></figure>
+      </div>
+
+      <h3>5.2 Fertilizer recommendation dataset</h3>
+      <p>21 fertilizer classes, also perfectly balanced (42 rows each) across 756 rows — but 42 samples per
+      class is thin for a 6-numeric-feature + 2-categorical-feature decision boundary, which shows up
+      directly in model performance (§6.2).</p>
+      <div class="grid grid-2">
+        <figure><img src="results/graphs/fertilizer_class_distribution.png" alt="Fertilizer class distribution">
+        <figcaption>Fig 5.5 — 21 fertilizer classes × 42 rows each</figcaption></figure>
+        <figure><img src="results/graphs/fertilizer_categorical_distribution.png" alt="Soil and crop type distribution">
+        <figcaption>Fig 5.6 — Soil Type / Crop Type distribution</figcaption></figure>
+        <figure><img src="results/graphs/fertilizer_correlation_heatmap.png" alt="Fertilizer feature correlation">
+        <figcaption>Fig 5.7 — numeric feature correlation</figcaption></figure>
+        <figure><img src="results/graphs/fertilizer_feature_distributions.png" alt="Fertilizer feature distributions">
+        <figcaption>Fig 5.8 — per-feature distributions</figcaption></figure>
+      </div>
+
+      <h3>5.3 Leaf image dataset</h3>
+      <p>4,597 images across 10 combined classes; Sugarcane classes are best represented (~500 each),
+      Apple scab the smallest (367).</p>
+      <div class="grid grid-2">
+        <figure><img src="results/graphs/image_class_distribution.png" alt="Image class distribution">
+        <figcaption>Fig 5.9 — combined 10-class image distribution</figcaption></figure>
+        <figure><img src="results/graphs/image_size_brightness.png" alt="Image size and brightness">
+        <figcaption>Fig 5.10 — sampled dimensions &amp; mean brightness</figcaption></figure>
+      </div>
+      <figure><img src="results/graphs/image_sample_grid.png" alt="Sample images per class"><figcaption>Fig 5.11 — sample images, one row per class</figcaption></figure>
+    </section>
+
+    <!-- 6. MODELS -->
+    <section id="models">
+      <div class="sec-head"><span class="num">06</span><h2>Model Training &amp; Comparison</h2></div>
+
+      <h3>6.1 Crop Recommendation — Decision Tree vs Random Forest</h3>
+      <div class="grid grid-2">
+        <div class="card">
+          <h4>Decision Tree <span class="badge low">baseline</span></h4>
+          <div class="metric"><span>Test accuracy</span><b>78.3%</b></div>
+          <div class="metric"><span>Macro F1</span><b>0.773</b></div>
+          <div class="metric"><span>5-fold CV accuracy</span><b>75.5%</b></div>
+          <div class="metric"><span>Train time</span><b>0.03s</b></div>
+        </div>
+        <div class="card">
+          <h4>Random Forest <span class="badge win">best model</span></h4>
+          <div class="metric"><span>Test accuracy</span><b>88.9%</b></div>
+          <div class="metric"><span>Macro F1</span><b>0.887</b></div>
+          <div class="metric"><span>5-fold CV accuracy</span><b>87.5%</b></div>
+          <div class="metric"><span>Train time</span><b>2.15s</b></div>
+        </div>
+      </div>
+      <p>Random Forest's bagged ensemble reduces the overfitting a single 12-depth Decision Tree shows
+      (train-CV gap of ~3pp vs Random Forest's ~1.3pp), and wins on every metric. It was saved as the
+      production model.</p>
+      <div class="grid grid-2">
+        <figure><img src="results/confusion_matrices/crop_random_forest_cm.png" alt="Random Forest confusion matrix"><figcaption>Fig 6.1 — Random Forest confusion matrix (24 classes)</figcaption></figure>
+        <figure><img src="results/graphs/crop_rf_feature_importance.png" alt="Random Forest feature importance"><figcaption>Fig 6.2 — feature importance: rainfall &amp; humidity dominate</figcaption></figure>
+      </div>
+
+      <h3>6.2 Fertilizer Recommendation — Decision Tree vs Random Forest</h3>
+      <div class="grid grid-2">
+        <div class="card">
+          <h4>Decision Tree <span class="badge win">best model</span></h4>
+          <div class="metric"><span>Test accuracy</span><b>27.6%</b></div>
+          <div class="metric"><span>Macro F1</span><b>0.223</b></div>
+          <div class="metric"><span>5-fold CV accuracy</span><b>27.8%</b></div>
+        </div>
+        <div class="card">
+          <h4>Random Forest</h4>
+          <div class="metric"><span>Test accuracy</span><b>22.4%</b></div>
+          <div class="metric"><span>Macro F1</span><b>0.120</b></div>
+          <div class="metric"><span>5-fold CV accuracy</span><b>18.2%</b></div>
+        </div>
+      </div>
+      <div class="callout warn">
+        <strong>Honest result, not a bug.</strong> Both models perform far below the crop model. With 756
+        rows spread across 21 classes (42 each) and only 6 numeric + 2 categorical features, many
+        fertilizer pairs are not linearly or even tree-separably distinguishable from the given features
+        alone — several fertilizers (e.g. different NPK-blend variants) likely overlap heavily in
+        feature space. Random Forest actually does <em>worse</em> than a single Decision Tree here, which is
+        a signature of a dataset too small/ambiguous for ensemble variance-reduction to help — the single
+        tree is already underfitting, not overfitting.
+      </div>
+      <img src="results/confusion_matrices/fertilizer_decision_tree_cm.png" alt="Fertilizer decision tree confusion matrix" style="max-width:520px">
+      <figcaption>Fig 6.3 — Decision Tree confusion matrix showing scattered misclassification across most fertilizer classes</figcaption>
+
+      <h3>6.3 Plant Disease Detection — CNN (GPU) vs CPU baseline (HOG + MLP / Random Forest)</h3>
+      <p>The final model for this task is a Convolutional Neural Network (see <code>models/plant_model.py
+      → build_cnn()</code>): four Conv2D+BatchNorm+MaxPool blocks, global-average-pooling, and a dropout-regularised
+      dense softmax head, trained with augmentation (<code>ImageDataGenerator</code>: rotation, shift, zoom, flip)
+      for up to 25 epochs with early stopping. <strong>This development environment has no internet
+      access and cannot install TensorFlow/GPU drivers</strong>, so the CNN could not be executed here —
+      it should be run on Colab or any TensorFlow+GPU machine (~15–20 min for this dataset size).</p>
+      <p>To still demonstrate the full train/validate/test/accuracy pipeline end-to-end, a CPU-only
+      baseline was trained instead: HOG (Histogram of Oriented Gradients) descriptors extracted per image,
+      classified with an MLP and a Random Forest.</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <h4>MLP (HOG features)</h4>
+          <div class="metric"><span>Test accuracy</span><b>53.6%</b></div>
+          <div class="metric"><span>Validation accuracy</span><b>53.6%</b></div>
+          <div class="metric"><span>Macro F1</span><b>0.528</b></div>
+          <div class="metric"><span>Train time</span><b>3.4s</b></div>
+        </div>
+        <div class="card">
+          <h4>Random Forest (HOG features) <span class="badge win">best baseline</span></h4>
+          <div class="metric"><span>Test accuracy</span><b>65.7%</b></div>
+          <div class="metric"><span>Validation accuracy</span><b>58.9%</b></div>
+          <div class="metric"><span>Macro F1</span><b>0.647</b></div>
+          <div class="metric"><span>Train time</span><b>11.4s</b></div>
+        </div>
+      </div>
+      <img src="results/confusion_matrices/plant_rf_cm.png" alt="Plant disease Random Forest confusion matrix" style="max-width:560px">
+      <figcaption>Fig 6.4 — Random Forest (HOG) confusion matrix, 10 combined classes</figcaption>
+      <div class="callout">
+        A hand-crafted-feature baseline in the 55–65% range is a reasonable floor for this problem;
+        published CNN results on comparable single-crop leaf-disease datasets (e.g. PlantVillage) typically
+        reach 90%+ because convolutional filters learn lesion textures the HOG descriptor only partially
+        captures. The gap here is expected and is exactly the argument for running the real CNN on GPU.
+      </div>
+    </section>
+
+    <!-- 7. RESULTS & DISCUSSION -->
+    <section id="results">
+      <div class="sec-head"><span class="num">07</span><h2>Results &amp; Discussion</h2></div>
+      <table>
+        <tr><th>Task</th><th>Best model</th><th>Test accuracy</th><th>Macro F1</th></tr>
+        <tr><td>Crop recommendation</td><td>Random Forest</td><td>88.9%</td><td>0.887</td></tr>
+        <tr><td>Fertilizer recommendation</td><td>Decision Tree</td><td>27.6%</td><td>0.223</td></tr>
+        <tr><td>Plant disease detection (CPU baseline)</td><td>Random Forest (HOG)</td><td>65.7%</td><td>0.647</td></tr>
+      </table>
+      <p>The three tasks land at very different performance levels, and the reasons are traceable to the
+      data rather than the algorithms: the crop dataset is large, clean, and features correlate strongly
+      with the target (rainfall, humidity dominate feature importance); the fertilizer dataset is small
+      and thinly spread across many classes; the image task is limited here by the lack of a true CNN,
+      not by the data itself, which is large enough (4,597 images) to support one.</p>
+      <p>Across both tabular tasks, Random Forest's advantage over Decision Tree tracks dataset size:
+      it wins convincingly on the 2,790-row crop dataset and loses on the 756-row fertilizer dataset —
+      consistent with ensembling needing enough data per class to have something to average over.</p>
+    </section>
+
+    <!-- 8. SOFTWARE DEMO -->
+    <section id="software">
+      <div class="sec-head"><span class="num">08</span><h2>Software Implementation</h2></div>
+      <p>The <code>CropAdvisoryAgent</code> class loads all three saved models and exposes
+      <code>.recommend_crop()</code>, <code>.recommend_fertilizer()</code>, <code>.detect_disease(image_path)</code>
+      and a combined <code>.full_advisory()</code> method. A minimal Flask app (<code>app/app.py</code>)
+      wraps it in a web form and a JSON API (<code>POST /api/recommend</code>).</p>
+      <h3>Example run</h3>
+      <pre class="card mono" style="overflow-x:auto; white-space:pre;">$ python agent/crop_advisory_agent.py
+
+{
+  "crop_recommendation": {
+    "recommended_crop": "rice",
+    "confidence": 0.965
+  },
+  "fertilizer_recommendation": {
+    "recommended_fertilizer": "Zinc Sulphate"
+  }
+}</pre>
+      <h3>Example disease detection</h3>
+      <pre class="card mono" style="overflow-x:auto; white-space:pre;">&gt;&gt;&gt; agent.detect_disease("data/plant_images/Cotton_bacterial_blight/bact0.jpg")
+
+{
+  "crop": "Cotton",
+  "predicted_label": "Cotton_bacterial_blight",
+  "advisory": {
+    "disease_label": "Bacterial_blight",
+    "cause_type": "Bacterial",
+    "symptoms": "Angular water-soaked leaf spots",
+    "recommendation": "Apply copper oxychloride + streptocycline; use certified
+                        disease-free seed; avoid overhead irrigation."
+  }
+}</pre>
+      <p>Run the demo locally with <code>python app/app.py</code> and open
+      <code>http://127.0.0.1:5000</code>. Full run instructions are in <code>README.md</code>.</p>
+    </section>
+
+    <!-- 9. CONCLUSION -->
+    <section id="conclusion">
+      <div class="sec-head"><span class="num">09</span><h2>Conclusion &amp; Future Enhancements</h2></div>
+      <p>This project demonstrates a working three-model agricultural advisory pipeline: a strong
+      Random-Forest crop recommender (88.9% accuracy), a fertilizer recommender that honestly exposes the
+      limits of its small training set (27.6% accuracy — reported rather than hidden), and a plant-disease
+      classifier whose full CNN specification is provided but requires GPU access this environment
+      doesn't have, with a CPU baseline (65.7% accuracy) standing in to prove the pipeline end-to-end.</p>
+      <h3>Future enhancements</h3>
+      <ul>
+        <li>Train and report the actual <code>tf.keras</code> CNN on Colab/GPU in place of the HOG baseline.</li>
+        <li>Collect more fertilizer-recommendation rows per class, or reduce the class count by grouping
+        chemically similar fertilizers, to give the model enough signal.</li>
+        <li>Add transfer learning (e.g. MobileNetV2 / EfficientNet fine-tuning) for the disease classifier
+        to reach the 90%+ range typical of published PlantVillage results.</li>
+        <li>Extend the disease-recommendation lookup table to cover diseases outside the current 10
+        image classes.</li>
+        <li>Package the Flask app behind a proper front-end and deploy for real farmer use-testing.</li>
+      </ul>
+    </section>
+
+    <!-- 10. REFERENCES -->
+    <section id="references">
+      <div class="sec-head"><span class="num">10</span><h2>References</h2></div>
+      <ol>
+        <li>Course guideline document, <em>2025.R.AID.1.23AID205 Project Guideline</em>.</li>
+        <li>Pedregosa, F. et al. <em>Scikit-learn: Machine Learning in Python.</em> JMLR 12, 2011.
+        <a href="https://scikit-learn.org" target="_blank">scikit-learn.org</a></li>
+        <li>Abadi, M. et al. <em>TensorFlow: Large-Scale Machine Learning on Heterogeneous Systems.</em>
+        <a href="https://www.tensorflow.org" target="_blank">tensorflow.org</a></li>
+        <li>Dalal, N. &amp; Triggs, B. <em>Histograms of Oriented Gradients for Human Detection.</em> CVPR 2005.</li>
+        <li>Hughes, D.P. &amp; Salathé, M. <em>An open access repository of images on plant health
+        (PlantVillage).</em> arXiv:1511.08060.</li>
+        <li>Sugarcane Leaf Disease Dataset, Cotton Leaf Disease Dataset — as supplied in course materials.</li>
+      </ol>
+    </section>
+
+    <!-- 11. CONTRIBUTORS -->
+    <section id="contributors">
+      <div class="sec-head"><span class="num">11</span><h2>Contributors</h2></div>
+      <p><em>Add team member names and roll numbers here before submission.</em></p>
+      <p>GitHub repository: <code>&lt;add your repo link here&gt;</code></p>
+    </section>
+
+    <footer>
+      Crop Advisory Agent · 23AID205 · Mid Review, 3rd week of August
+    </footer>
+  </main>
+</div>
+</body>
+</html>

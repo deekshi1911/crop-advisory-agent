@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, select, bars %}
+{% block title %}Fertilizer Recommendation{% endblock %}
+{% block content %}
+<h1>🧪 Fertilizer Recommendation</h1>
+<p class="lede">Decision Tree trained on 756 field records across 21 fertilizers.</p>
+<div class="warn">Test accuracy for this model is only {{ metrics.fertilizer }}%. Treat the ranking as a starting point and confirm with a soil test or a local agricultural officer.</div>
+
+<div class="card">
+  <form method="post">
+    <div class="grid2">
+      {% for key, spec in fields.items() %}{{ field(key, spec, form) }}{% endfor %}
+      {{ select('soil_type', 'Soil type', soil_types, form, 'Red') }}
+      {{ select('crop_type', 'Crop type', crop_types, form, 'Oil seeds') }}
+    </div>
+    <button class="submit" type="submit">Recommend Fertilizer</button>
+  </form>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  {% if result %}
+  <div class="result">
+    <div class="kicker">Best match</div>
+    <h3>{{ result.recommended_fertilizer }}</h3>
+    <div class="conf">model confidence {{ "%.1f"|format(result.confidence*100) }}%</div>
+    <div class="kicker" style="margin-top:14px">Top {{ result.top|length }} fertilizers</div>
+    {{ bars(result.top) }}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

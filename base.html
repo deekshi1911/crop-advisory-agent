@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Crop Advisory Agent{% endblock %}</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  :root{
+    --ink:#17241c; --paper:#eef0e3; --paper2:#e4e8d6; --deep:#1e3626; --deep2:#152a1c;
+    --accent:#c08a2e; --soil:#7a4b32; --line:#c9cdb8; --good:#3f6b46; --bad:#9a4433; --warn:#8a6417;
+    --display:'Fraunces',Georgia,serif; --body:'Work Sans',-apple-system,'Segoe UI',sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:var(--body); color:var(--ink); background:var(--paper); line-height:1.6;}
+  a{color:var(--soil);}
+  header.top{background:linear-gradient(180deg,var(--deep),var(--deep2)); color:var(--paper); padding:16px 40px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .brand{font-family:var(--display); font-weight:700; font-size:1.3rem; text-decoration:none; color:var(--paper);}
+  .brand span{color:var(--accent);}
+  nav.tabs{display:flex; gap:6px; flex-wrap:wrap;}
+  nav.tabs a{text-decoration:none; color:#dfe6d5; font-size:.85rem; padding:8px 14px; border-radius:6px; font-family:var(--mono);}
+  nav.tabs a:hover{background:rgba(255,255,255,.08);}
+  nav.tabs a.active{background:var(--accent); color:var(--deep2); font-weight:600;}
+  main{max-width:960px; margin:0 auto; padding:40px 24px 80px;}
+  h1{font-family:var(--display); font-weight:700; font-size:2rem; color:var(--deep); margin-bottom:8px; line-height:1.2;}
+  p.lede{color:#4a5a4c; max-width:68ch; margin-bottom:28px;}
+  .card{background:#fff; border:1px solid var(--line); border-radius:12px; padding:28px; margin-bottom:24px;}
+  label{display:block; font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--soil); margin-top:16px; margin-bottom:6px;}
+  input, select{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:6px; font-family:var(--body); font-size:.95rem; background:var(--paper);}
+  input:focus, select:focus{outline:2px solid var(--accent); border-color:var(--accent);}
+  .hint{font-family:var(--mono); font-size:.66rem; color:#8a917f;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:0 20px;}
+  button.submit, a.btn{display:inline-block; margin-top:24px; padding:12px 24px; background:var(--deep); color:#fff; border:0; border-radius:8px;
+    font-family:var(--body); font-weight:600; font-size:.95rem; cursor:pointer; text-decoration:none;}
+  button.submit:hover, a.btn:hover{background:var(--deep2);}
+  button.submit[disabled]{opacity:.65; cursor:progress;}
+  .result{margin-top:28px; padding:22px; border-radius:10px; background:var(--paper2); border-left:4px solid var(--accent);}
+  .result.ok{border-left-color:var(--good);}
+  .result .kicker{font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--soil); margin-bottom:4px;}
+  .result h3{font-family:var(--display); color:var(--deep); font-size:1.4rem; margin-bottom:4px;}
+  .conf{font-family:var(--mono); font-size:.8rem; color:var(--soil); margin-bottom:6px;}
+  .result table{width:100%; margin-top:14px; border-collapse:collapse; font-size:.9rem;}
+  .result td{padding:7px 4px; border-bottom:1px dashed var(--line); vertical-align:top;}
+  .result td:first-child{font-family:var(--mono); color:var(--soil); width:140px; font-size:.8rem;}
+  .error{background:rgba(154,68,51,.1); border-left:4px solid var(--bad); padding:14px 18px; border-radius:8px; margin-top:20px; color:var(--bad); font-size:.9rem;}
+  .warn{background:rgba(192,138,46,.14); border-left:4px solid var(--accent); padding:12px 16px; border-radius:8px; margin:12px 0; color:var(--warn); font-size:.86rem;}
+  .muted{color:#5d6a5f; font-size:.9rem; margin-top:10px;} .small{font-size:.78rem;}
+  code{font-family:var(--mono); font-size:.85em; background:rgba(0,0,0,.05); padding:1px 5px; border-radius:4px;}
+  .three-col{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:20px;}
+  .feature-card{background:#fff; border:1px solid var(--line); border-radius:12px; padding:22px; text-decoration:none; color:var(--ink); transition:transform .15s,border-color .15s;}
+  .feature-card:hover{transform:translateY(-3px); border-color:var(--accent);}
+  .feature-card .emoji{font-size:1.8rem;}
+  .feature-card h3{font-family:var(--display); color:var(--deep); margin:10px 0 6px; font-size:1.15rem;}
+  .feature-card p{font-size:.85rem; color:#556; margin:0 0 10px;}
+  .badge{display:inline-block; font-family:var(--mono); font-size:.68rem; text-transform:uppercase; padding:2px 10px; border-radius:20px; background:rgba(63,107,70,.15); color:var(--good);}
+  .badge.low{background:rgba(192,138,46,.2); color:var(--warn);}
+  /* confidence bars */
+  .bars{margin-top:12px;}
+  .bar-row{display:grid; grid-template-columns:150px 1fr 56px; gap:10px; align-items:center; font-size:.85rem; padding:3px 0;}
+  .bar-name{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .bar-track{height:9px; background:rgba(0,0,0,.08); border-radius:9px; overflow:hidden;}
+  .bar-fill{display:block; height:100%; background:#a9b58e; border-radius:9px;}
+  .bar-row.top .bar-fill{background:var(--good);} .bar-row.top .bar-name{font-weight:600;}
+  .bar-pct{font-family:var(--mono); font-size:.76rem; text-align:right; color:var(--soil);}
+  /* uploader */
+  .dropzone{position:relative; border:2px dashed var(--line); border-radius:10px; padding:22px; text-align:center; background:var(--paper); transition:border-color .15s,background .15s;}
+  .dropzone.drag{border-color:var(--accent); background:#f6efdc;}
+  .dropzone input{position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;}
+  .preview-img{display:block; max-width:260px; max-height:220px; margin:12px auto 0; border-radius:8px; border:1px solid var(--line);}
+  .preview-img[hidden]{display:none;}
+  .section-title{font-family:var(--display); color:var(--deep); font-size:1.25rem; margin:30px 0 4px;}
+  footer{text-align:center; padding:24px; font-family:var(--mono); font-size:.72rem; color:var(--soil);}
+  @media (max-width:700px){
+    header.top{padding:14px 18px;} main{padding:28px 16px 60px;}
+    .grid2,.three-col{grid-template-columns:1fr;} .bar-row{grid-template-columns:110px 1fr 50px;}
+    h1{font-size:1.6rem;}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">🌾 Crop <span>Advisory Agent</span></a>
+  <nav class="tabs">
+    <a href="/" class="{{ 'active' if active=='home' else '' }}">Home</a>
+    <a href="/crop" class="{{ 'active' if active=='crop' else '' }}">Crop</a>
+    <a href="/fertilizer" class="{{ 'active' if active=='fertilizer' else '' }}">Fertilizer</a>
+    <a href="/disease" class="{{ 'active' if active=='disease' else '' }}">Disease</a>
+    <a href="/advisory" class="{{ 'active' if active=='advisory' else '' }}">Full Advisory</a>
+  </nav>
+</header>
+<main>
+  {% if model_issues %}
+  <div class="error" style="margin-top:0">
+    <strong>Model loading problem</strong>
+    {% for m in model_issues %}<div style="margin-top:6px">{{ m }}</div>{% endfor %}
+  </div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+<footer>Crop Advisory Agent · Random Forest (crop) · Decision Tree (fertilizer) · leaf-image classifier (disease) · Course 23AID205</footer>
+<script>
+  // loading state on every form submit
+  document.querySelectorAll('form').forEach(function(f){
+    f.addEventListener('submit', function(){
+      var b = f.querySelector('button.submit');
+      if (b && f.checkValidity()) { b.disabled = true; b.textContent = 'Analysing…'; }
+    });
+  });
+  // leaf-photo drag & drop + preview
+  var input = document.getElementById('image-input');
+  if (input) {
+    var zone = document.getElementById('dropzone'), prev = document.getElementById('dz-preview'),
+        text = document.getElementById('dz-text');
+    input.addEventListener('change', function(){
+      var file = input.files[0];
+      if (!file) return;
+      if (file.size > 8*1024*1024) { alert('That image is larger than 8 MB.'); input.value=''; return; }
+      prev.src = URL.createObjectURL(file); prev.hidden = false;
+      text.innerHTML = '✅ <strong>' + file.name.replace(/</g,'') + '</strong> — click to change';
+    });
+    ['dragenter','dragover'].forEach(function(e){ zone.addEventListener(e, function(){ zone.classList.add('drag'); }); });
+    ['dragleave','drop'].forEach(function(e){ zone.addEventListener(e, function(){ zone.classList.remove('drag'); }); });
+  }
+</script>
+</body>
+</html>

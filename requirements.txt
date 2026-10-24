@@ -1,0 +1,19 @@
+# Core
+numpy
+pandas
+scikit-learn==1.8.0
+joblib
+
+# EDA / plotting
+matplotlib
+seaborn
+Pillow
+scikit-image
+
+# CNN (real model - run on GPU/Colab; not required for the CPU-only
+# fallback baseline that ships in models/plant_model.py)
+tensorflow>=2.15
+
+# Web application
+flask
+werkzeug

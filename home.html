@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Crop Advisory Agent — Home{% endblock %}
+{% block content %}
+<h1>Advising the plot before the season turns.</h1>
+<p class="lede">Three trained models behind one interface: a Random Forest crop recommender, a Decision Tree
+fertilizer recommender, and a leaf-disease classifier ({{ backend }}). Pick a tool below.</p>
+
+<div class="three-col">
+  <a class="feature-card" href="/crop">
+    <div class="emoji">🌱</div><h3>Crop Recommendation</h3>
+    <p>Enter N, P, K, temperature, humidity, pH and rainfall to get the best-suited crops, ranked by probability.</p>
+    <span class="badge">Random Forest · {{ metrics.crop }}% acc.</span>
+  </a>
+  <a class="feature-card" href="/fertilizer">
+    <div class="emoji">🧪</div><h3>Fertilizer Recommendation</h3>
+    <p>Enter soil and crop conditions to get the top three fertilizer suggestions.</p>
+    <span class="badge low">Decision Tree · {{ metrics.fertilizer }}% acc.</span>
+  </a>
+  <a class="feature-card" href="/disease">
+    <div class="emoji">🍃</div><h3>Disease Detection</h3>
+    <p>Upload a Sugarcane, Cotton or Apple leaf photo to detect disease and get treatment advice.</p>
+    <span class="badge low">{{ metrics.disease }}% acc.</span>
+  </a>
+</div>
+
+<div class="card" style="margin-top:28px;">
+  <h3 style="font-family:var(--display); color:var(--deep); margin-bottom:10px;">Or run everything at once</h3>
+  <p class="muted" style="margin-top:0">The <strong>Full Advisory</strong> page takes your soil readings and (optionally) a leaf photo,
+  then returns crop + fertilizer + disease advice in one report, exactly what the <code>CropAdvisoryAgent</code> class does.</p>
+  <a href="/advisory" class="btn">Open Full Advisory →</a>
+</div>
+<p class="muted small">Accuracy figures are test-set results from <code>results/model_results</code>. The fertilizer and disease models are baselines; use their output as guidance, not as a final decision.</p>
+{% endblock %}

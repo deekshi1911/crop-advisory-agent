@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, bars %}
+{% block title %}Crop Recommendation{% endblock %}
+{% block content %}
+<h1>🌱 Crop Recommendation</h1>
+<p class="lede">Random Forest trained on soil and climate readings across 45 crops. Test accuracy {{ metrics.crop }}%.</p>
+
+<div class="card">
+  <form method="post">
+    <div class="grid2">
+      {% for key, spec in fields.items() %}{{ field(key, spec, form) }}{% endfor %}
+    </div>
+    <button class="submit" type="submit">Recommend Crop</button>
+  </form>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  {% if result %}
+  <div class="result">
+    <div class="kicker">Best match</div>
+    <h3>{{ result.recommended_crop|capitalize }}</h3>
+    <div class="conf">model confidence {{ "%.1f"|format(result.confidence*100) }}%</div>
+    <div class="kicker" style="margin-top:14px">Top {{ result.top|length }} crops</div>
+    {{ bars(result.top) }}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

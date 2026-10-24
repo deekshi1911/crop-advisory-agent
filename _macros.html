@@ -1,0 +1,63 @@
+{% macro field(key, spec, form) -%}
+<div>
+  <label for="f-{{ key }}">{{ spec[0] }}</label>
+  <input id="f-{{ key }}" type="number" name="{{ key }}" step="{{ spec[3] }}" min="{{ spec[1] }}" max="{{ spec[2] }}"
+         value="{{ form.get(key) if form and form.get(key) is not none else spec[4] }}" required>
+  <span class="hint">{{ spec[1] }} – {{ spec[2] }}</span>
+</div>
+{%- endmacro %}
+
+{% macro select(name, label, options, form, default=None, blank=None) -%}
+<div>
+  <label for="f-{{ name }}">{{ label }}</label>
+  <select id="f-{{ name }}" name="{{ name }}">
+    {% if blank %}<option value="">{{ blank }}</option>{% endif %}
+    {% for o in options %}
+    <option value="{{ o }}" {{ 'selected' if (form and form.get(name)==o) or (not form and default==o) else '' }}>{{ o }}</option>
+    {% endfor %}
+  </select>
+</div>
+{%- endmacro %}
+
+{% macro bars(items, key='name') -%}
+<div class="bars">
+  {% for it in items %}
+  <div class="bar-row {{ 'top' if loop.first else '' }}">
+    <span class="bar-name">{{ (it[key] if key in it else it.label).replace('_',' ')|title }}</span>
+    <span class="bar-track"><span class="bar-fill" style="width:{{ (it.probability*100)|round(1) }}%"></span></span>
+    <span class="bar-pct">{{ "%.1f"|format(it.probability*100) }}%</span>
+  </div>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro uploader(preview_url, required=False) -%}
+<label for="image-input">Leaf photo (.jpg / .png / .webp, max 8 MB)</label>
+<div class="dropzone" id="dropzone">
+  <input id="image-input" type="file" name="image" accept="image/*" {{ 'required' if required else '' }}>
+  <div class="dz-text" id="dz-text">📷 <strong>Click to choose</strong> or drag a leaf photo here</div>
+  <img id="dz-preview" class="preview-img" alt="Leaf preview" {% if preview_url %}src="{{ preview_url }}"{% else %}hidden{% endif %}>
+</div>
+{%- endmacro %}
+
+{% macro disease_card(d) -%}
+<div class="result {{ 'ok' if d.is_healthy else '' }}">
+  <div class="kicker">🍃 Disease detection · {{ d.backend }}</div>
+  <h3>{{ d.crop }} — {{ 'Healthy leaf' if d.is_healthy else d.disease|capitalize }}</h3>
+  <div class="conf">confidence {{ "%.1f"|format(d.confidence*100) }}%</div>
+  {% if d.low_confidence %}
+  <div class="warn">The model is not confident about this photo. Retake it in good light with a single leaf filling the frame, and treat the result as a hint only.</div>
+  {% endif %}
+  {{ bars(d.top, 'label') }}
+  {% if d.advisory %}
+  <table>
+    <tr><td>Cause type</td><td>{{ d.advisory.cause_type }}</td></tr>
+    <tr><td>Symptoms</td><td>{{ d.advisory.symptoms }}</td></tr>
+    <tr><td>Recommendation</td><td>{{ d.advisory.recommendation }}</td></tr>
+  </table>
+  {% else %}
+  <p class="muted">No treatment entry found for this class in <code>disease_recommendations.csv</code>.</p>
+  {% endif %}
+  <p class="muted small">Supports Cotton, Sugarcane and Apple leaves only. It has no “not a leaf” class, so unrelated photos still get a label.</p>
+</div>
+{%- endmacro %}

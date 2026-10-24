@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, select, bars, uploader, disease_card %}
+{% block title %}Full Advisory{% endblock %}
+{% block content %}
+<h1>📋 Full Advisory Report</h1>
+<p class="lede">Runs all three models together: crop and fertilizer recommendations from your soil readings,
+plus optional disease detection from a leaf photo.</p>
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    <div class="grid2">
+      {% for key, spec in fields.items() %}{{ field(key, spec, form) }}{% endfor %}
+      {{ select('soil_type', 'Soil type', soil_types, form, 'Loamy') }}
+      {{ select('fertilizer_crop_type', 'Fertilizer crop type', crop_types, form, blank='Auto (from recommended crop)') }}
+    </div>
+    {{ uploader(preview_url) }}
+    <p class="muted small">Leave the leaf photo empty to skip disease detection.</p>
+    <button class="submit" type="submit">Get Full Advisory</button>
+  </form>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  {% if result and result.crop_recommendation and not result.crop_recommendation.error %}
+  {% set c = result.crop_recommendation %}{% set f = result.fertilizer_recommendation %}
+  <div class="result">
+    <div class="kicker">🌱 Crop recommendation</div>
+    <h3>{{ c.recommended_crop|capitalize }}</h3>
+    <div class="conf">model confidence {{ "%.1f"|format(c.confidence*100) }}%</div>
+    {{ bars(c.top) }}
+  </div>
+
+  {% if f and f.error %}<div class="error">{{ f.error }}</div>{% endif %}
+  {% if f and not f.error %}
+  <div class="result">
+    <div class="kicker">🧪 Fertilizer recommendation</div>
+    <h3>{{ f.recommended_fertilizer }}</h3>
+    <div class="conf">model confidence {{ "%.1f"|format(f.confidence*100) }}% · for crop type “{{ f.crop_type_used }}” on {{ f.soil_type_used }} soil</div>
+    {% if f.approximate_crop_match %}
+    <div class="warn">“{{ c.recommended_crop|capitalize }}” is not a crop type in the fertilizer data, so the closest type (“{{ f.crop_type_used }}”) was used.</div>
+    {% endif %}
+    {% for w in f.warnings %}<div class="warn">{{ w }}</div>{% endfor %}
+    {{ bars(f.top) }}
+  </div>
+  {% endif %}
+
+  {% if result.disease_detection %}
+    {% if result.disease_detection.error %}<div class="error">{{ result.disease_detection.error }}</div>
+    {% else %}{{ disease_card(result.disease_detection) }}{% endif %}
+  {% endif %}
+
+  <p class="muted small">This report is decision support only. Confirm fertilizer doses and disease treatment with a soil test or your local agricultural extension officer.</p>
+  {% endif %}
+</div>
+{% endblock %}

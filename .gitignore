@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+venv/
+.venv/
+.vscode/
+.ipynb_checkpoints/
